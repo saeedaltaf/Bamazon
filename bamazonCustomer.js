@@ -35,7 +35,7 @@ function askToShop() {
         type: "confirm",
         message: "Would you like to shop at Bamazon?"
     }]).then(function(response) {
-        if (response.purchase === true) {
+        if (response.shop === true) {
             makePurchase();
         } else {
             console.log("Oh well, maybe next time?");
@@ -57,7 +57,7 @@ function makePurchase() {
         }
     ]).then(function(response) {
         connection.query("SELECT * FROM products WHERE ?", {
-            item_id: response.buy
+            id: response.buy
         }, function(err, res) {
             if (err) throw (err)
             if (res[0].stock_quantity >= response.quantity) {
@@ -78,12 +78,12 @@ function makePurchase() {
     })
 }
 
-function updatedQuanity(buy, quantity) {
+function updatedQuantity(buy, quantity) {
     connection.query("UPDATE products SET ? WHERE ?", [{
             stock_quantity: quantity
         },
         {
-            item_id: buy
+            id: buy
         }
     ], function(err, results) {
 
