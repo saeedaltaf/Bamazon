@@ -18,6 +18,76 @@ connection.connect(function(err) {
 function show() {
     connection.query("SELECT * FROM products", function(err, res) {
         if (err) throw (err);
-        console.log(res);
+        console.log("~~~~~~~~~~~~~~~~~~Welcome to Bamazon!~~~~~~~~~~~~~~~~~~");
+        console.log("Check out our inventory:");
+        console.log("================================================================================================");
+        for (i = 0; i < res.length; i++) {
+            console.log("ID: " + res[i].id + " || " + "Product: " + res[i].product_name + " || " + "Price: " + res[i].price);
+            console.log("================================================================================================");
+        }
+        askToShop();
     })
 };
+
+function askToShop() {
+    inquirer.prompt([{
+        name: "shop",
+        type: "confirm",
+        message: "Would you like to shop at Bamazon?"
+    }]).then(function(response) {
+        if (response.purchase === true) {
+            makePurchase();
+        } else {
+            console.log("Oh well, maybe next time?");
+            connection.end();
+        }
+    })
+};
+
+function makePurchase() {
+    inquirer.prompt([{
+            name: "buy",
+            type: "input",
+            message: "What is the ID number of the product you'd like to purchase?"
+        },
+        {
+            name: "quantity",
+            type: "input",
+            message: "How many would you like to purchase?"
+        }
+    ]).then(function(response) {
+        connection.query("SELECT * FROM products WHERE ?", {
+            item_id: response.buy
+        }, function(err, res) {
+            if (err) throw (err)
+            if (res[0].stock_quantity >= response.quantity) {
+                console.log("It's been purchased!");
+
+                //Update database with new quantity://
+                var newQuantity = res[0].stock_quantity - parseInt(response.quantity);
+                var totalAmount = parseInt(response.quantity) * res[0].price;
+
+                updatedQuantity(response.buy, newQuantity);
+                console.log("Total Amount Due: $" + totalAmount);
+                askToShop();
+            } else {
+                console.log("Sorry, we don't have enough in stock!");
+                askToShop();
+            }
+        })
+    })
+}
+
+function updatedQuanity(buy, quantity) {
+    connection.query("UPDATE products SET ? WHERE ?", [{
+            stock_quantity: quantity
+        },
+        {
+            item_id: buy
+        }
+    ], function(err, results) {
+
+    });
+
+
+}
